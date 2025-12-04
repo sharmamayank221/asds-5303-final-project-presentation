@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- Chart.js for dynamic visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -20,8 +23,15 @@
             font-family: 'DM Sans', sans-serif;
             background: linear-gradient(135deg, #f0f2f5 0%, #e2e8f0 100%);
             color: #334155;
-            padding: 20px;
+            padding: 10px;
             min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body.no-scroll {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
         
         .container {
@@ -33,39 +43,39 @@
         .header {
             background: linear-gradient(135deg, #005088 0%, #003055 100%);
             color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .header h1 {
             font-family: 'Merriweather', serif;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 5px;
         }
         
         .header .subtitle {
             color: #11caa0;
             font-weight: bold;
-            letter-spacing: 2px;
-            font-size: 1.1em;
+            letter-spacing: 1px;
+            font-size: 0.9em;
         }
         
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
         }
         
         .stat-card {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-top: 5px solid #005088;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-top: 4px solid #005088;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
@@ -85,10 +95,10 @@
         }
         
         .stat-value {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
             color: #005088;
-            margin: 10px 0;
+            margin: 8px 0;
         }
         
         .stat-card.winner .stat-value {
@@ -104,6 +114,60 @@
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        /* Tooltip Styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 280px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -140px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .tooltip-icon {
+            margin-left: 5px;
+            color: #11caa0;
+            font-size: 0.8em;
         }
         
         .stat-description {
@@ -116,15 +180,15 @@
         .model-comparison {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
         
         .model-card {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .model-card.lda {
@@ -171,6 +235,8 @@
         .metric-label {
             font-size: 0.9em;
             color: #64748b;
+            position: relative;
+            display: inline-block;
         }
         
         .metric-value {
@@ -187,24 +253,30 @@
         .viz-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 1024px) {
+            .viz-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .viz-card {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         
         .viz-card h3 {
             font-family: 'Merriweather', serif;
             color: #005088;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            border-bottom: 3px solid #11caa0;
-            padding-bottom: 10px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #11caa0;
+            padding-bottom: 8px;
         }
         
         .viz-card img {
@@ -212,6 +284,43 @@
             height: auto;
             border-radius: 8px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 15px 0;
+        }
+        
+        .chart-container.large {
+            height: 450px;
+        }
+        
+        .chart-container.small {
+            height: 300px;
+        }
+        
+        .chart-updating {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .stat-card.updating {
+            opacity: 0.7;
+            position: relative;
+        }
+        
+        .stat-card.updating::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #11caa0;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
         
         /* Key Insights */
@@ -320,6 +429,329 @@
         .stat-card, .model-card, .viz-card {
             animation: fadeIn 0.6s ease-out;
         }
+        
+        /* Control Panel */
+        .control-panel {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .control-panel h2 {
+            font-family: 'Merriweather', serif;
+            color: #005088;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #11caa0;
+            padding-bottom: 8px;
+        }
+        
+        .control-groups-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .control-groups-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control-group {
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #005088;
+        }
+        
+        .control-group h3 {
+            font-family: 'Merriweather', serif;
+            color: #005088;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #334155;
+        }
+        
+        .slider-value {
+            color: #11caa0;
+            font-size: 1.1em;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #11caa0;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #11caa0;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #11caa0;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: bold;
+            color: #334155;
+        }
+        
+        .toggle-description {
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .reset-button {
+            background: linear-gradient(135deg, #005088 0%, #003055 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-top: 4px solid #005088;
+            min-height: 100%;
+        }
+        
+        .reset-button i {
+            font-size: 1.5em;
+        }
+        
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,80,136,0.3);
+        }
+        
+        .metric-change {
+            font-size: 0.75em;
+            margin-left: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .metric-change.positive {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .metric-change.negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .simulation-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 50px 60px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            max-width: 400px;
+        }
+        
+        .loading-spinner h3 {
+            font-family: 'Merriweather', serif;
+            color: #005088;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #11caa0;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .loading-details {
+            color: #64748b;
+            font-size: 0.9em;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        
+        .loading-progress {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #11caa0;
+            font-weight: bold;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .calculating-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 80, 136, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+            color: white;
+            overflow-y: auto;
+        }
+        
+        .calculating-content {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        .calculating-content h2 {
+            font-family: 'Merriweather', serif;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .calculating-content .spinner {
+            border-top-color: #11caa0;
+            margin: 30px auto;
+        }
+        
+        .calculating-steps {
+            margin-top: 30px;
+            text-align: left;
+            font-size: 1.1em;
+        }
+        
+        .calculating-steps li {
+            margin: 15px 0;
+            opacity: 0.7;
+        }
+        
+        .calculating-steps li.active {
+            opacity: 1;
+            color: #11caa0;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #ef4444;
+            margin: 15px 0;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -328,191 +760,348 @@
         <div class="header">
             <h1><i class="fa-solid fa-chart-line"></i> Diabetes Prediction Dashboard</h1>
             <p class="subtitle">LDA vs QDA Model Performance Analysis | Group 7</p>
-            <p style="margin-top: 15px; opacity: 0.9;">ASDS 5303 - December 5, 2025</p>
+            <p style="margin-top: 5px; opacity: 0.9; font-size: 0.85em;">ASDS 5303 - December 5, 2025</p>
+            <div id="simulationIndicator" style="display: none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+                <i class="fa-solid fa-flask"></i> <strong>Simulation Mode Active</strong> - Metrics are being calculated based on your adjustments
+            </div>
+        </div>
+        
+        <!-- Calculating Overlay -->
+        <div class="calculating-overlay" id="calculatingOverlay">
+            <div class="calculating-content">
+                <h2><i class="fa-solid fa-calculator"></i> Calculating Model Performance</h2>
+                <div class="spinner"></div>
+                <p style="font-size: 1.2em; margin-top: 20px;" id="calculatingStatus">Preparing data...</p>
+                <div class="calculating-steps">
+                    <ul style="list-style: none; padding: 0;">
+                        <li id="step1"><i class="fa-solid fa-circle-check" style="color: #11caa0; margin-right: 10px;"></i> Adjusting class distribution</li>
+                        <li id="step2"><i class="fa-solid fa-circle" style="margin-right: 10px;"></i> Training LDA model</li>
+                        <li id="step3"><i class="fa-solid fa-circle" style="margin-right: 10px;"></i> Training QDA model</li>
+                        <li id="step4"><i class="fa-solid fa-circle" style="margin-right: 10px;"></i> Calculating metrics</li>
+                        <li id="step5"><i class="fa-solid fa-circle" style="margin-right: 10px;"></i> Generating ROC curves</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 30px; font-size: 0.9em; opacity: 0.8;">This typically takes 30-60 seconds</p>
+            </div>
+        </div>
+        
+        <!-- Loading Overlay (for quick operations) -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p style="color: #005088; font-weight: bold;">Loading...</p>
+            </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage">
+            <strong><i class="fa-solid fa-exclamation-triangle"></i> Error:</strong> <span id="errorText"></span>
+        </div>
+        
+        <!-- Interactive Control Panel -->
+        <div class="control-panel">
+            <h2><i class="fa-solid fa-sliders"></i> Interactive Model Analysis</h2>
+            <p style="margin-bottom: 12px; color: #64748b; font-size: 0.9em;">Adjust the class distribution and enable SMOTE to see real model performance results</p>
+            
+            <div class="control-groups-container">
+                <div class="control-group">
+                    <h3><i class="fa-solid fa-balance-scale"></i> Class Distribution Ratio</h3>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>No Diabetes: <span id="noDiabetesPercent">65</span>%</span>
+                            <span class="slider-value">Diabetes: <span id="diabetesPercent">35</span>%</span>
+                        </div>
+                        <input type="range" id="classRatioSlider" min="40" max="70" value="65" step="1">
+                        <div class="toggle-description">Adjust the ratio to see how class balance affects model performance. Balanced (50/50) typically improves specificity.</div>
+                        <div id="sliderEffect" style="margin-top: 10px; padding: 10px; background: #f0f9ff; border-radius: 5px; font-size: 0.85em; color: #005088; display: none;">
+                            <i class="fa-solid fa-info-circle"></i> <strong>What's happening:</strong> <span id="sliderEffectText"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>
+                        <i class="fa-solid fa-magic"></i> SMOTE (Synthetic Minority Over-sampling)
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>SMOTE:</strong> A technique that creates artificial (synthetic) examples of the minority class (diabetes cases) to balance the dataset. Instead of just copying existing examples, SMOTE creates new examples by mixing features from similar existing cases. This helps the model learn better patterns for detecting diabetes, especially when there are fewer diabetes cases than healthy cases in the data.
+                            </span>
+                        </span>
+                    </h3>
+                    <div class="toggle-label">
+                        <span>SMOTE Enabled:</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="smoteToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span id="smoteStatus" style="color: #64748b;">OFF</span>
+                    </div>
+                    <div class="toggle-description">SMOTE generates synthetic samples for the minority class, helping balance the dataset and improve detection of diabetic cases.</div>
+                </div>
+            </div>
         </div>
         
         <!-- Key Statistics -->
         <div class="stats-grid">
-            <div class="stat-card winner">
-                <div class="stat-label"><i class="fa-solid fa-trophy"></i> Best Model</div>
-                <div class="stat-value">LDA</div>
-                <div class="stat-description">Linear Discriminant Analysis outperformed QDA with 76.09% accuracy</div>
+            <div class="stat-card winner" id="bestModelCard">
+                <div class="stat-label">
+                    <i class="fa-solid fa-trophy"></i> Best Model
+                    <span class="tooltip">
+                        <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                        <span class="tooltiptext">
+                            <strong>Best Model:</strong> The model (LDA or QDA) that performs best overall, typically determined by a combination of accuracy, AUC-ROC, and other metrics. LDA (Linear Discriminant Analysis) uses linear boundaries, while QDA (Quadratic Discriminant Analysis) uses curved boundaries to separate classes.
+                        </span>
+                    </span>
+                </div>
+                <div class="stat-value" id="bestModel">LDA</div>
+                <div class="stat-description" id="bestModelDesc">Linear Discriminant Analysis outperformed QDA with 76.09% accuracy</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-bullseye"></i> Accuracy</div>
-                <div class="stat-value">76.09%</div>
-                <div class="stat-description">LDA achieved superior accuracy on test set</div>
+                <div class="stat-label">
+                    <i class="fa-solid fa-bullseye"></i> Accuracy
+                    <span class="tooltip">
+                        <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                        <span class="tooltiptext">
+                            <strong>Accuracy:</strong> The percentage of all predictions (both correct and incorrect) that the model got right. For example, 76% accuracy means out of 100 predictions, 76 were correct. Higher is better, but accuracy alone doesn't tell the full story when classes are imbalanced.
+                        </span>
+                    </span>
+                </div>
+                <div class="stat-value" id="statAccuracy">76.09%</div>
+                <div class="stat-description" id="statAccuracyDesc">LDA achieved superior accuracy on test set</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-chart-area"></i> AUC-ROC</div>
-                <div class="stat-value">0.835</div>
-                <div class="stat-description">Excellent discriminative ability</div>
+                <div class="stat-label">
+                    <i class="fa-solid fa-chart-area"></i> AUC-ROC
+                    <span class="tooltip">
+                        <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                        <span class="tooltiptext">
+                            <strong>AUC-ROC (Area Under the Curve):</strong> Measures how well the model can distinguish between people with and without diabetes. Values range from 0 to 1, where 1.0 is perfect and 0.5 is no better than random guessing. Values above 0.8 are considered good. This metric is especially useful when classes are imbalanced.
+                        </span>
+                    </span>
+                </div>
+                <div class="stat-value" id="statAUC">0.8349</div>
+                <div class="stat-description" id="statAUCDesc">Excellent discriminative ability</div>
             </div>
             
-            <div class="stat-card warning">
-                <div class="stat-label"><i class="fa-solid fa-exclamation-triangle"></i> Specificity</div>
-                <div class="stat-value">56.25%</div>
-                <div class="stat-description">Critical limitation: Missing 44% of diabetic cases</div>
+            <div class="stat-card warning" id="specificityCard">
+                <div class="stat-label">
+                    <i class="fa-solid fa-exclamation-triangle"></i> Specificity
+                    <span class="tooltip">
+                        <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                        <span class="tooltiptext">
+                            <strong>Specificity:</strong> The percentage of people who actually DON'T have diabetes that the model correctly identified as healthy. For example, 55% specificity means out of 100 healthy people, the model correctly identified 55 as healthy. Higher is better. Low specificity means the model is missing many diabetic cases (false negatives), which is dangerous in medical diagnosis.
+                        </span>
+                    </span>
+                </div>
+                <div class="stat-value" id="statSpecificity">55.08%</div>
+                <div class="stat-description" id="statSpecificityDesc">Critical limitation: Missing 45% of diabetic cases</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-users"></i> Dataset Size</div>
-                <div class="stat-value">768</div>
-                <div class="stat-description">Pima Indian women, aged 21+</div>
+            <div class="stat-card warning" id="imbalanceCard">
+                <div class="stat-label">
+                    <i class="fa-solid fa-balance-scale"></i> Class Imbalance
+                    <span class="tooltip">
+                        <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                        <span class="tooltiptext">
+                            <strong>Class Imbalance:</strong> The ratio of "No Diabetes" to "Diabetes" cases in the dataset. For example, 65/35 means 65% of people don't have diabetes and 35% do. When classes are imbalanced, models tend to favor the majority class, making it harder to detect the minority class (diabetes). A balanced 50/50 ratio often improves the model's ability to detect diabetic cases.
+                        </span>
+                    </span>
+                </div>
+                <div class="stat-value" id="statImbalance">65/35</div>
+                <div class="stat-description" id="statImbalanceDesc">No Diabetes (65%) vs Diabetes (35%)</div>
             </div>
             
-            <div class="stat-card warning">
-                <div class="stat-label"><i class="fa-solid fa-balance-scale"></i> Class Imbalance</div>
-                <div class="stat-value">65/35</div>
-                <div class="stat-description">No Diabetes (65%) vs Diabetes (35%)</div>
-            </div>
+            <button class="reset-button stat-card" onclick="resetControls()" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span style="margin-top: 8px; font-size: 1.1em; font-weight: bold;">Reset Values</span>
+            </button>
         </div>
         
         <!-- Model Comparison -->
         <div class="model-comparison">
-            <div class="model-card lda">
+            <div class="model-card lda" id="ldaCard">
                 <div class="model-header">
                     <div class="model-name">LDA (Linear)</div>
-                    <div class="model-badge">WINNER</div>
+                    <div class="model-badge" id="ldaBadge">WINNER</div>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Accuracy</span>
-                    <span class="metric-value highlight">76.09%</span>
+                    <span class="metric-label">
+                        Accuracy
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Accuracy:</strong> The percentage of all predictions that were correct. Higher is better, but doesn't show the full picture when classes are imbalanced.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value highlight" id="ldaAccuracy">76.09%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Sensitivity</span>
-                    <span class="metric-value highlight">86.67%</span>
+                    <span class="metric-label">
+                        Sensitivity
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Sensitivity (Recall):</strong> The percentage of people who actually HAVE diabetes that the model correctly identified. For example, 88% sensitivity means out of 100 diabetic people, the model correctly identified 88. Higher is better - this measures how well we catch diabetic cases.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value highlight" id="ldaSensitivity">88.20%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Specificity</span>
-                    <span class="metric-value highlight">56.25%</span>
+                    <span class="metric-label">
+                        Specificity
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Specificity:</strong> The percentage of people who DON'T have diabetes that the model correctly identified as healthy. Higher is better. Low specificity means missing many diabetic cases.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value highlight" id="ldaSpecificity">55.08%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">AUC-ROC</span>
-                    <span class="metric-value highlight">0.835</span>
+                    <span class="metric-label">
+                        AUC-ROC
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>AUC-ROC:</strong> Measures how well the model distinguishes between people with and without diabetes. Values range from 0 to 1, where 1.0 is perfect. Values above 0.8 are considered good.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value highlight" id="ldaAUC">0.8349</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Precision</span>
-                    <span class="metric-value">0.71</span>
+                    <span class="metric-label">
+                        Precision
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Precision:</strong> When the model predicts someone has diabetes, how often is it correct? For example, 0.71 precision means out of 100 "diabetes" predictions, 71 were actually correct. Higher is better - this measures the reliability of positive predictions.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="ldaPrecision">0.71</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">F1-Score</span>
-                    <span class="metric-value">0.78</span>
+                    <span class="metric-label">
+                        F1-Score
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>F1-Score:</strong> A balanced measure that combines Precision and Sensitivity. It's useful when you need to balance both catching diabetic cases (sensitivity) and being accurate when you predict diabetes (precision). Values range from 0 to 1, where 1.0 is perfect. Higher is better.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="ldaF1">0.78</span>
                 </div>
             </div>
             
-            <div class="model-card qda">
+            <div class="model-card qda" id="qdaCard">
                 <div class="model-header">
                     <div class="model-name">QDA (Quadratic)</div>
-                    <div style="color: #64748b; font-size: 0.9em;">Runner-up</div>
+                    <div style="color: #64748b; font-size: 0.9em;" id="qdaBadge">Runner-up</div>
+                    <div class="model-badge" id="qdaBadgeWinner" style="display: none;">WINNER</div>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Accuracy</span>
-                    <span class="metric-value">71.30%</span>
+                    <span class="metric-label">
+                        Accuracy
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Accuracy:</strong> The percentage of all predictions that were correct. Higher is better, but doesn't show the full picture when classes are imbalanced.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaAccuracy">71.30%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Sensitivity</span>
-                    <span class="metric-value">82.00%</span>
+                    <span class="metric-label">
+                        Sensitivity
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Sensitivity (Recall):</strong> The percentage of people who actually HAVE diabetes that the model correctly identified. For example, 84% sensitivity means out of 100 diabetic people, the model correctly identified 84. Higher is better - this measures how well we catch diabetic cases.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaSensitivity">84.13%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Specificity</span>
-                    <span class="metric-value">51.25%</span>
+                    <span class="metric-label">
+                        Specificity
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Specificity:</strong> The percentage of people who DON'T have diabetes that the model correctly identified as healthy. Higher is better. Low specificity means missing many diabetic cases.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaSpecificity">54.97%</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">AUC-ROC</span>
-                    <span class="metric-value">0.806</span>
+                    <span class="metric-label">
+                        AUC-ROC
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>AUC-ROC:</strong> Measures how well the model distinguishes between people with and without diabetes. Values range from 0 to 1, where 1.0 is perfect. Values above 0.8 are considered good.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaAUC">0.8061</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">Precision</span>
-                    <span class="metric-value">0.66</span>
+                    <span class="metric-label">
+                        Precision
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>Precision:</strong> When the model predicts someone has diabetes, how often is it correct? For example, 0.66 precision means out of 100 "diabetes" predictions, 66 were actually correct. Higher is better - this measures the reliability of positive predictions.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaPrecision">0.66</span>
                 </div>
                 <div class="metric-row">
-                    <span class="metric-label">F1-Score</span>
-                    <span class="metric-value">0.73</span>
+                    <span class="metric-label">
+                        F1-Score
+                        <span class="tooltip">
+                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                            <span class="tooltiptext">
+                                <strong>F1-Score:</strong> A balanced measure that combines Precision and Sensitivity. It's useful when you need to balance both catching diabetic cases (sensitivity) and being accurate when you predict diabetes (precision). Values range from 0 to 1, where 1.0 is perfect. Higher is better.
+                            </span>
+                        </span>
+                    </span>
+                    <span class="metric-value" id="qdaF1">0.73</span>
                 </div>
             </div>
         </div>
         
-        <!-- Visualizations -->
-        <div class="viz-grid">
+        <!-- Dynamic Visualizations -->
+        <div class="viz-grid" style="grid-template-columns: 1fr 1fr;">
             <div class="viz-card">
-                <h3><i class="fa-solid fa-chart-bar"></i> Class Distribution</h3>
-                <img src="images/01_outcome_distribution.png" alt="Class Distribution">
-            </div>
-            
-            <div class="viz-card">
-                <h3><i class="fa-solid fa-chart-line"></i> ROC Curves Comparison</h3>
-                <img src="images/12_roc_curves.png" alt="ROC Curves">
-            </div>
-            
-            <div class="viz-card">
-                <h3><i class="fa-solid fa-project-diagram"></i> Correlation Matrix</h3>
-                <img src="images/03_correlation_matrix.png" alt="Correlation Matrix">
+                <h3><i class="fa-solid fa-chart-bar"></i> Class Distribution <span id="classDistLabel" style="font-size: 0.7em; color: #64748b;">(Live Update)</span></h3>
+                <div class="chart-container large">
+                    <canvas id="classDistributionChart"></canvas>
+                </div>
+                <p style="font-size: 0.75em; color: #64748b; margin-top: 10px; text-align: center;">
+                    Adjust the slider above to see how class balance changes in real-time
+                </p>
             </div>
             
             <div class="viz-card">
-                <h3><i class="fa-solid fa-scatter-plot"></i> Data Visualization</h3>
-                <img src="images/04_scatter_plots.png" alt="Scatter Plots">
-            </div>
-            
-            <div class="viz-card">
-                <h3><i class="fa-solid fa-chart-pie"></i> PCA Analysis</h3>
-                <img src="images/06_pca_biplot.png" alt="PCA Biplot">
-            </div>
-        </div>
-        
-        <!-- Key Insights -->
-        <div class="insights-section">
-            <h2><i class="fa-solid fa-lightbulb"></i> Key Insights & Findings</h2>
-            
-            <div class="insight-item success">
-                <div class="insight-icon"><i class="fa-solid fa-check-circle"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">LDA Wins Despite Theory</div>
-                    <div class="insight-text">Despite Box's M test suggesting QDA (p < 0.05, unequal covariance), LDA achieved 4.79% higher accuracy. This demonstrates that simpler models can outperform complex ones when dealing with imbalanced data.</div>
+                <h3><i class="fa-solid fa-chart-line"></i> ROC Curves Comparison <span id="rocLabel" style="font-size: 0.7em; color: #64748b;">(Live Update)</span></h3>
+                <div class="chart-container large">
+                    <canvas id="rocCurvesChart"></canvas>
                 </div>
-            </div>
-            
-            <div class="insight-item warning">
-                <div class="insight-icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">Critical Blind Spot: 44% Missed Cases</div>
-                    <div class="insight-text">The model only identifies 56.25% of diabetic cases (specificity). This means 44% of diabetic patients go undetected, which is unacceptable for clinical screening. The root cause is class imbalance (65% vs 35%).</div>
-                </div>
-            </div>
-            
-            <div class="insight-item">
-                <div class="insight-icon"><i class="fa-solid fa-info-circle"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">Class Imbalance Impact</div>
-                    <div class="insight-text">The 2:1 ratio (No Diabetes vs Diabetes) causes the model to favor the majority class. While sensitivity is excellent (86.67%), specificity suffers significantly, making the model unsuitable for clinical deployment without addressing this imbalance.</div>
-                </div>
-            </div>
-            
-            <div class="insight-item success">
-                <div class="insight-icon"><i class="fa-solid fa-chart-line"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">Strong Discriminative Ability</div>
-                    <div class="insight-text">LDA achieved an AUC-ROC of 0.835, indicating excellent ability to distinguish between diabetic and non-diabetic patients. Both models significantly outperform random chance (AUC = 0.5).</div>
-                </div>
-            </div>
-            
-            <div class="insight-item">
-                <div class="insight-icon"><i class="fa-solid fa-flask"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">Robustness Over Complexity</div>
-                    <div class="insight-text">QDA's flexibility (allowing different covariance matrices) led to overfitting on the smaller class. LDA's simpler assumption (equal covariance) proved more robust, demonstrating that theoretical optimality doesn't always translate to real-world performance.</div>
-                </div>
-            </div>
-            
-            <div class="insight-item">
-                <div class="insight-icon"><i class="fa-solid fa-rocket"></i></div>
-                <div class="insight-content">
-                    <div class="insight-title">Path Forward</div>
-                    <div class="insight-text">Future improvements should focus on SMOTE (Synthetic Minority Over-sampling), cost-sensitive learning to prioritize sensitivity, and ensemble methods combining LDA with Random Forest or SVM for enhanced performance.</div>
-                </div>
+                <p style="font-size: 0.75em; color: #64748b; margin-top: 10px; text-align: center;">
+                    Updates automatically when model analysis completes
+                </p>
             </div>
         </div>
         
@@ -522,6 +1111,733 @@
             <p style="margin-top: 10px;">ASDS 5303 - Early Detection of Diabetes | December 5, 2025</p>
         </div>
     </div>
+    
+    <script>
+        // API Configuration
+        // Using port 5001 because macOS AirPlay uses port 5000
+        const API_BASE_URL = 'http://localhost:5001';
+        
+        // Chart instances
+        let classDistributionChart = null;
+        let rocCurvesChart = null;
+        
+        // Original baseline metrics (fallback) - from CV results
+        const baseline = {
+            lda: {
+                accuracy: 76.09,
+                sensitivity: 88.2,  // From CV: 0.882
+                specificity: 55.08, // From CV: 0.5508547
+                auc: 0.8349,        // From CV: 0.8349145
+                precision: 0.71,
+                f1: 0.78
+            },
+            qda: {
+                accuracy: 71.30,
+                sensitivity: 84.13, // From CV: 0.8413333
+                specificity: 54.97, // From CV: 0.5496676
+                auc: 0.8061,        // From CV: 0.806114
+                precision: 0.66,
+                f1: 0.73
+            },
+            classRatio: 65
+        };
+        
+        // Current metrics cache
+        let currentMetrics = { ...baseline };
+        
+        // Get DOM elements
+        const classRatioSlider = document.getElementById('classRatioSlider');
+        const smoteToggle = document.getElementById('smoteToggle');
+        const noDiabetesPercent = document.getElementById('noDiabetesPercent');
+        const diabetesPercent = document.getElementById('diabetesPercent');
+        const smoteStatus = document.getElementById('smoteStatus');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        
+        // Debounce function
+        let debounceTimer;
+        function debounce(func, wait) {
+            return function(...args) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+        
+        // Show/hide calculating overlay
+        let currentStep = 0;
+        const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
+        
+        let scrollPosition = 0;
+        
+        function showCalculating(show, status = '') {
+            const calculatingOverlay = document.getElementById('calculatingOverlay');
+            const calculatingStatus = document.getElementById('calculatingStatus');
+            
+            if (show) {
+                // Save scroll position and prevent scrolling
+                scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                document.body.classList.add('no-scroll');
+                document.body.style.top = `-${scrollPosition}px`;
+                
+                // Scroll to top to show controls
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                calculatingOverlay.style.display = 'flex';
+                if (status) {
+                    calculatingStatus.textContent = status;
+                }
+                currentStep = 0;
+                updateCalculatingSteps();
+            } else {
+                // Restore scroll position
+                document.body.classList.remove('no-scroll');
+                document.body.style.top = '';
+                window.scrollTo({ top: scrollPosition, behavior: 'instant' });
+                
+                calculatingOverlay.style.display = 'none';
+                // Reset all steps
+                steps.forEach(step => {
+                    const el = document.getElementById(step);
+                    if (el) {
+                        el.querySelector('i').className = 'fa-solid fa-circle';
+                        el.classList.remove('active');
+                    }
+                });
+            }
+        }
+        
+        function updateCalculatingSteps() {
+            steps.forEach((step, index) => {
+                const el = document.getElementById(step);
+                if (el) {
+                    if (index <= currentStep) {
+                        el.querySelector('i').className = 'fa-solid fa-circle-check';
+                        el.querySelector('i').style.color = '#11caa0';
+                        el.classList.add('active');
+                    } else {
+                        el.querySelector('i').className = 'fa-solid fa-circle';
+                        el.querySelector('i').style.color = '';
+                        el.classList.remove('active');
+                    }
+                }
+            });
+        }
+        
+        function nextCalculatingStep() {
+            currentStep = Math.min(currentStep + 1, steps.length - 1);
+            updateCalculatingSteps();
+        }
+        
+        // Show/hide loading (for quick operations)
+        function showLoading(show) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+        }
+        
+        // Show error
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Add updating class to stat cards
+        function setStatCardsUpdating(updating) {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                if (updating) {
+                    card.classList.add('updating');
+                } else {
+                    card.classList.remove('updating');
+                }
+            });
+        }
+        
+        // Call API to get real metrics
+        async function fetchMetrics(noDiabetesPercent, useSmote) {
+            try {
+                showCalculating(true, 'Starting analysis...');
+                setStatCardsUpdating(true);
+                hideError();
+                
+                // Simulate progress updates
+                setTimeout(() => {
+                    nextCalculatingStep();
+                    document.getElementById('calculatingStatus').textContent = 'Adjusting class distribution...';
+                }, 2000);
+                
+                setTimeout(() => {
+                    nextCalculatingStep();
+                    document.getElementById('calculatingStatus').textContent = 'Training LDA model...';
+                }, 8000);
+                
+                setTimeout(() => {
+                    nextCalculatingStep();
+                    document.getElementById('calculatingStatus').textContent = 'Training QDA model...';
+                }, 15000);
+                
+                setTimeout(() => {
+                    nextCalculatingStep();
+                    document.getElementById('calculatingStatus').textContent = 'Calculating performance metrics...';
+                }, 20000);
+                
+                setTimeout(() => {
+                    nextCalculatingStep();
+                    document.getElementById('calculatingStatus').textContent = 'Generating ROC curves...';
+                }, 25000);
+                
+                const response = await fetch(`${API_BASE_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        no_diabetes_pct: noDiabetesPercent,
+                        use_smote: useSmote
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                console.log('API Response:', data); // Debug
+                
+                // Helper function to extract scalar from array if needed
+                function extractValue(val) {
+                    if (Array.isArray(val)) {
+                        return val[0];
+                    }
+                    return val;
+                }
+                
+                // Helper function to extract array (flatten if nested)
+                function extractArray(arr) {
+                    if (!arr) return null;
+                    if (Array.isArray(arr)) {
+                        // Flatten nested arrays
+                        const flattened = [];
+                        for (let item of arr) {
+                            if (Array.isArray(item)) {
+                                flattened.push(...item);
+                            } else {
+                                flattened.push(item);
+                            }
+                        }
+                        return flattened;
+                    }
+                    return [arr];
+                }
+                
+                // Convert to our format - handle arrays from R jsonlite
+                const result = {
+                    lda: {
+                        accuracy: extractValue(data.lda.accuracy) * 100,
+                        sensitivity: extractValue(data.lda.sensitivity) * 100,
+                        specificity: extractValue(data.lda.specificity) * 100,
+                        auc: extractValue(data.lda.auc),
+                        precision: extractValue(data.lda.precision),
+                        f1: extractValue(data.lda.f1),
+                        roc_curve: data.lda.roc_curve ? {
+                            fpr: extractArray(data.lda.roc_curve.fpr),
+                            tpr: extractArray(data.lda.roc_curve.tpr)
+                        } : null
+                    },
+                    qda: {
+                        accuracy: extractValue(data.qda.accuracy) * 100,
+                        sensitivity: extractValue(data.qda.sensitivity) * 100,
+                        specificity: extractValue(data.qda.specificity) * 100,
+                        auc: extractValue(data.qda.auc),
+                        precision: extractValue(data.qda.precision),
+                        f1: extractValue(data.qda.f1),
+                        roc_curve: data.qda.roc_curve ? {
+                            fpr: extractArray(data.qda.roc_curve.fpr),
+                            tpr: extractArray(data.qda.roc_curve.tpr)
+                        } : null
+                    },
+                    metadata: data.metadata
+                };
+                
+                console.log('Processed Metrics:', result); // Debug
+                return result;
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                showError(`Failed to fetch results: ${error.message}. Using cached results.`);
+                return null; // Return null to use cached metrics
+            } finally {
+                showCalculating(false);
+                setStatCardsUpdating(false);
+                // Complete all steps
+                currentStep = steps.length - 1;
+                updateCalculatingSteps();
+            }
+        }
+        
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+        
+        // Update UI with metrics
+        function updateUI(metrics) {
+            console.log('updateUI called with:', metrics); // Debug
+            
+            if (!metrics) {
+                console.warn('No metrics provided, using cached');
+                metrics = currentMetrics; // Use cached if API failed
+            } else {
+                currentMetrics = metrics; // Cache successful results
+            }
+            
+            console.log('Updating UI with metrics:', metrics); // Debug
+            
+            const noDiabetes = parseInt(classRatioSlider.value);
+            const diabetes = 100 - noDiabetes;
+            const smoteEnabled = smoteToggle.checked;
+            
+            // Show/hide simulation indicator
+            const isSimulation = (noDiabetes !== baseline.classRatio) || smoteEnabled;
+            document.getElementById('simulationIndicator').style.display = isSimulation ? 'block' : 'none';
+            
+            // Update slider labels
+            noDiabetesPercent.textContent = noDiabetes;
+            diabetesPercent.textContent = diabetes;
+            smoteStatus.textContent = smoteEnabled ? 'ON' : 'OFF';
+            smoteStatus.style.color = smoteEnabled ? '#11caa0' : '#64748b';
+            
+            // Determine best model
+            const bestLDA = metrics.lda.accuracy >= metrics.qda.accuracy;
+            
+            // Update stat cards
+            console.log('Updating stat cards with bestLDA:', bestLDA);
+            console.log('LDA metrics:', metrics.lda);
+            console.log('QDA metrics:', metrics.qda);
+            
+            const bestModel = bestLDA ? 'LDA' : 'QDA';
+            const bestAccuracy = bestLDA ? metrics.lda.accuracy : metrics.qda.accuracy;
+            const bestAUC = bestLDA ? metrics.lda.auc : metrics.qda.auc;
+            const bestSpecificity = bestLDA ? metrics.lda.specificity : metrics.qda.specificity;
+            
+            document.getElementById('bestModel').textContent = bestModel;
+            document.getElementById('bestModelDesc').textContent = 
+                `${bestModel} achieved ${bestAccuracy.toFixed(2)}% accuracy`;
+            
+            document.getElementById('statAccuracy').textContent = `${bestAccuracy.toFixed(2)}%`;
+            document.getElementById('statAUC').textContent = bestAUC.toFixed(4);
+            document.getElementById('statSpecificity').textContent = `${bestSpecificity.toFixed(2)}%`;
+            
+            console.log('Stat cards updated:', { bestModel, bestAccuracy, bestAUC, bestSpecificity });
+            
+            const missedCases = 100 - (bestLDA ? metrics.lda.specificity : metrics.qda.specificity);
+            document.getElementById('statSpecificityDesc').textContent = 
+                missedCases < 20 ? 
+                    `Excellent! Only ${missedCases.toFixed(1)}% of diabetic cases missed` :
+                    missedCases < 30 ?
+                        `Improved! ${missedCases.toFixed(1)}% of diabetic cases missed` :
+                        `Critical limitation: Missing ${missedCases.toFixed(1)}% of diabetic cases`;
+            
+            document.getElementById('statImbalance').textContent = `${noDiabetes}/${diabetes}`;
+            document.getElementById('statImbalanceDesc').textContent = 
+                `No Diabetes (${noDiabetes}%) vs Diabetes (${diabetes}%)`;
+            
+            // Update class imbalance card styling
+            const imbalanceCard = document.getElementById('imbalanceCard');
+            if (Math.abs(noDiabetes - 50) < 5) {
+                imbalanceCard.classList.remove('warning');
+                imbalanceCard.classList.add('winner');
+            } else {
+                imbalanceCard.classList.remove('winner');
+                imbalanceCard.classList.add('warning');
+            }
+            
+            // Update specificity card styling
+            const specificityCard = document.getElementById('specificityCard');
+            if (bestSpecificity >= 80) {
+                specificityCard.classList.remove('warning');
+                specificityCard.classList.add('winner');
+            } else if (bestSpecificity >= 70) {
+                specificityCard.classList.remove('warning');
+            } else {
+                specificityCard.classList.add('warning');
+            }
+            
+            // Update LDA metrics
+            document.getElementById('ldaAccuracy').textContent = `${metrics.lda.accuracy.toFixed(2)}%`;
+            document.getElementById('ldaSensitivity').textContent = `${metrics.lda.sensitivity.toFixed(2)}%`;
+            document.getElementById('ldaSpecificity').textContent = `${metrics.lda.specificity.toFixed(2)}%`;
+            document.getElementById('ldaAUC').textContent = metrics.lda.auc.toFixed(4);
+            document.getElementById('ldaPrecision').textContent = metrics.lda.precision.toFixed(2);
+            document.getElementById('ldaF1').textContent = metrics.lda.f1.toFixed(2);
+            
+            // Update QDA metrics
+            document.getElementById('qdaAccuracy').textContent = `${metrics.qda.accuracy.toFixed(2)}%`;
+            document.getElementById('qdaSensitivity').textContent = `${metrics.qda.sensitivity.toFixed(2)}%`;
+            document.getElementById('qdaSpecificity').textContent = `${metrics.qda.specificity.toFixed(2)}%`;
+            document.getElementById('qdaAUC').textContent = metrics.qda.auc.toFixed(4);
+            document.getElementById('qdaPrecision').textContent = metrics.qda.precision.toFixed(2);
+            document.getElementById('qdaF1').textContent = metrics.qda.f1.toFixed(2);
+            
+            // Update winner badge
+            if (bestLDA) {
+                document.getElementById('ldaBadge').textContent = 'WINNER';
+                document.getElementById('ldaBadge').style.display = 'block';
+                document.getElementById('qdaBadge').textContent = 'Runner-up';
+                document.getElementById('qdaBadge').style.display = 'block';
+                document.getElementById('qdaBadgeWinner').style.display = 'none';
+            } else {
+                document.getElementById('qdaBadge').style.display = 'none';
+                document.getElementById('qdaBadgeWinner').style.display = 'block';
+                document.getElementById('ldaBadge').style.display = 'none';
+            }
+            
+            // Update ROC curves chart with new metrics
+            updateROCCurvesChart(metrics.lda, metrics.qda);
+            
+            // Update class distribution chart with final values
+            updateClassDistributionChart(noDiabetes);
+        }
+        
+        // Update metrics (with debouncing for slider)
+        async function updateMetrics(useDebounce = true) {
+            const noDiabetes = parseInt(classRatioSlider.value);
+            const smoteEnabled = smoteToggle.checked;
+            
+            // Update slider labels only
+            noDiabetesPercent.textContent = noDiabetes;
+            diabetesPercent.textContent = 100 - noDiabetes;
+            smoteStatus.textContent = smoteEnabled ? 'ON' : 'OFF';
+            smoteStatus.style.color = smoteEnabled ? '#11caa0' : '#64748b';
+            
+            if (useDebounce) {
+                // Debounced version for slider
+                debounce(async () => {
+                    const metrics = await fetchMetrics(noDiabetes, smoteEnabled);
+                    updateUI(metrics);
+                }, 500)();
+            } else {
+                // Immediate version for toggle
+                const metrics = await fetchMetrics(noDiabetes, smoteEnabled);
+                updateUI(metrics);
+            }
+        }
+        
+        // Reset to original values
+        async function resetControls() {
+            classRatioSlider.value = baseline.classRatio;
+            smoteToggle.checked = false;
+            const metrics = await fetchMetrics(baseline.classRatio, false);
+            updateUI(metrics);
+        }
+        
+        // Event listeners
+        classRatioSlider.addEventListener('input', () => updateMetrics(true));
+        smoteToggle.addEventListener('change', () => updateMetrics(false));
+        
+        // Initialize charts
+        function initCharts() {
+            // Class Distribution Chart
+            const classCtx = document.getElementById('classDistributionChart').getContext('2d');
+            // Initial values: 65% No Diabetes, 35% Diabetes (baseline)
+            const total = 768;
+            const initialNoDiabetes = Math.round(total * 0.65);
+            const initialDiabetes = total - initialNoDiabetes;
+            
+            classDistributionChart = new Chart(classCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['No Diabetes', 'Diabetes'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [initialNoDiabetes, initialDiabetes],
+                        backgroundColor: ['#005088', '#11caa0'],
+                        borderColor: ['#003055', '#0fa588'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' cases (' + 
+                                           ((context.parsed.y / 768) * 100).toFixed(1) + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases'
+                            },
+                            ticks: {
+                                stepSize: 100
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Outcome'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // ROC Curves Chart
+            const rocCtx = document.getElementById('rocCurvesChart').getContext('2d');
+            rocCurvesChart = new Chart(rocCtx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'LDA',
+                            data: [],
+                            borderColor: '#005088',
+                            backgroundColor: 'rgba(0, 80, 136, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'QDA',
+                            data: [],
+                            borderColor: '#11caa0',
+                            backgroundColor: 'rgba(17, 202, 160, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Random Classifier',
+                            data: Array.from({length: 101}, (_, i) => ({x: i / 100, y: i / 100})),
+                            borderColor: '#94a3b8',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 2) return 'Random Classifier';
+                                    return context.dataset.label + ': ' + 
+                                           'Sensitivity = ' + context.parsed.y.toFixed(3) + 
+                                           ', FPR = ' + context.parsed.x.toFixed(3);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: '1 - Specificity (False Positive Rate)'
+                            },
+                            min: 0,
+                            max: 1
+                        },
+                        y: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Sensitivity (True Positive Rate)'
+                            },
+                            min: 0,
+                            max: 1
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update Class Distribution Chart
+        function updateClassDistributionChart(noDiabetesPercent) {
+            if (!classDistributionChart) return;
+            
+            const total = 768;
+            const noDiabetesCount = Math.round(total * noDiabetesPercent / 100);
+            const diabetesCount = total - noDiabetesCount;
+            
+            classDistributionChart.data.datasets[0].data = [noDiabetesCount, diabetesCount];
+            classDistributionChart.update('active');
+            
+            // Update effect description
+            const effectDiv = document.getElementById('sliderEffect');
+            const effectText = document.getElementById('sliderEffectText');
+            const balance = Math.abs(50 - noDiabetesPercent);
+            
+            if (balance < 2) {
+                effectText.textContent = `Classes are balanced (${noDiabetesPercent}% vs ${100-noDiabetesPercent}%). This should improve model's ability to detect diabetic cases.`;
+                effectDiv.style.background = '#f0fdf4';
+                effectDiv.style.color = '#166534';
+            } else if (balance < 5) {
+                effectText.textContent = `Classes are nearly balanced. Model should perform better than imbalanced scenarios.`;
+                effectDiv.style.background = '#fef3c7';
+                effectDiv.style.color = '#92400e';
+            } else {
+                effectText.textContent = `Classes are imbalanced. Model may favor the majority class (No Diabetes).`;
+                effectDiv.style.background = '#fef2f2';
+                effectDiv.style.color = '#991b1b';
+            }
+            
+            effectDiv.style.display = 'block';
+        }
+        
+        // Update ROC Curves Chart with actual ROC curve data
+        function updateROCCurvesChart(ldaMetrics, qdaMetrics) {
+            if (!rocCurvesChart) {
+                console.error('ROC chart not initialized');
+                return;
+            }
+            
+            console.log('Updating ROC curves with:', { lda: ldaMetrics, qda: qdaMetrics }); // Debug
+            
+            // Helper function to flatten nested arrays
+            function flattenArray(arr) {
+                if (!Array.isArray(arr)) return [arr];
+                const result = [];
+                for (let item of arr) {
+                    if (Array.isArray(item)) {
+                        result.push(...flattenArray(item));
+                    } else {
+                        result.push(item);
+                    }
+                }
+                return result;
+            }
+            
+            // Use actual ROC curve data if available, otherwise use metrics
+            if (ldaMetrics.roc_curve && ldaMetrics.roc_curve.fpr && ldaMetrics.roc_curve.tpr) {
+                console.log('Using real LDA ROC curve data');
+                // Flatten arrays in case they're nested
+                const fprArray = flattenArray(ldaMetrics.roc_curve.fpr);
+                const tprArray = flattenArray(ldaMetrics.roc_curve.tpr);
+                
+                // Ensure arrays are the same length
+                const minLength = Math.min(fprArray.length, tprArray.length);
+                const ldaData = [];
+                for (let i = 0; i < minLength; i++) {
+                    const x = parseFloat(fprArray[i]);
+                    const y = parseFloat(tprArray[i]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        ldaData.push({ x, y });
+                    }
+                }
+                rocCurvesChart.data.datasets[0].data = ldaData;
+                console.log('LDA ROC data points:', ldaData.length);
+            } else {
+                console.log('Using approximate LDA ROC curve');
+                // Fallback: create approximate curve from metrics
+                const ldaData = generateApproximateROC(ldaMetrics.auc, ldaMetrics.sensitivity / 100, ldaMetrics.specificity / 100);
+                rocCurvesChart.data.datasets[0].data = ldaData;
+            }
+            
+            if (qdaMetrics.roc_curve && qdaMetrics.roc_curve.fpr && qdaMetrics.roc_curve.tpr) {
+                console.log('Using real QDA ROC curve data');
+                // Flatten arrays in case they're nested
+                const fprArray = flattenArray(qdaMetrics.roc_curve.fpr);
+                const tprArray = flattenArray(qdaMetrics.roc_curve.tpr);
+                
+                // Ensure arrays are the same length
+                const minLength = Math.min(fprArray.length, tprArray.length);
+                const qdaData = [];
+                for (let i = 0; i < minLength; i++) {
+                    const x = parseFloat(fprArray[i]);
+                    const y = parseFloat(tprArray[i]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        qdaData.push({ x, y });
+                    }
+                }
+                rocCurvesChart.data.datasets[1].data = qdaData;
+                console.log('QDA ROC data points:', qdaData.length);
+            } else {
+                console.log('Using approximate QDA ROC curve');
+                // Fallback: create approximate curve from metrics
+                const qdaData = generateApproximateROC(qdaMetrics.auc, qdaMetrics.sensitivity / 100, qdaMetrics.specificity / 100);
+                rocCurvesChart.data.datasets[1].data = qdaData;
+            }
+            
+            console.log('Updating ROC chart...');
+            rocCurvesChart.update('active');
+            console.log('ROC chart updated');
+        }
+        
+        // Fallback function to generate approximate ROC curve
+        function generateApproximateROC(auc, sensitivity, specificity) {
+            const points = [];
+            const steps = 100;
+            const fpr = 1 - specificity;
+            const tpr = sensitivity;
+            
+            for (let i = 0; i <= steps; i++) {
+                const x = i / steps;
+                if (x === 0) {
+                    points.push({x: 0, y: 0});
+                } else if (x === 1) {
+                    points.push({x: 1, y: 1});
+                } else {
+                    const power = 1 / (2 * auc);
+                    let y;
+                    if (x < fpr) {
+                        y = tpr * Math.pow(x / fpr, power);
+                    } else {
+                        y = tpr + (1 - tpr) * Math.pow((x - fpr) / (1 - fpr), 1 / power);
+                    }
+                    points.push({x: x, y: Math.max(0, Math.min(1, y))});
+                }
+            }
+            return points;
+        }
+        
+        // Initialize with baseline
+        (async () => {
+            initCharts();
+            
+            // Set initial slider position
+            classRatioSlider.value = baseline.classRatio;
+            smoteToggle.checked = false;
+            
+            // Update slider labels
+            noDiabetesPercent.textContent = baseline.classRatio;
+            diabetesPercent.textContent = 100 - baseline.classRatio;
+            
+            // Fetch and update with real metrics
+            const metrics = await fetchMetrics(baseline.classRatio, false);
+            if (metrics) {
+                updateUI(metrics);
+            } else {
+                // Use baseline if API fails
+                updateUI(baseline);
+            }
+        })();
+    </script>
 </body>
 </html>
 

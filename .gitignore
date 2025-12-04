@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# R
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Logs
+*.log
+/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local data (keep data/ folder structure but ignore actual CSV if sensitive)
+# Uncomment if you don't want to commit CSV:
+# data/*.csv
+
+# Temporary files
+*.tmp
+*.temp
+
