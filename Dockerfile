@@ -25,9 +25,10 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY api_server.py .
 COPY model_analysis.R .
 
-# Copy CSV file (if it exists in repo)
-# If CSV is not in repo, you'll need to upload it separately or use a URL
-COPY data/*.csv /app/data/ 2>/dev/null || true
+# Copy data directory
+# IMPORTANT: The data/ directory with diabetes_2.csv must exist in your repository
+# The CSV file should be at: data/diabetes_2.csv
+COPY data /app/data
 
 # Expose port (will be overridden by cloud platform)
 EXPOSE 5001

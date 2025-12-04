@@ -18,4 +18,6 @@ GITHUB_PAGES_SETUP.md
 README_*.md
 PRESENTATION_*.md
 QUICK_START.md
+# Keep data/ directory - we need the CSV file
+!data/
 
