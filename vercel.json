@@ -1,8 +1,16 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "https://your-api-name.onrender.com/:path*"
+      "destination": "https://asds-5303-final-project-presentation-api.onrender.com/:path*"
     }
   ],
   "headers": [
