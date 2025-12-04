@@ -1114,8 +1114,10 @@
     
     <script>
         // API Configuration
-        // Using port 5001 because macOS AirPlay uses port 5000
-        const API_BASE_URL = 'http://localhost:5001';
+        // API URL - use production URL when deployed, localhost for development
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5001'
+            : 'https://asds-5303-final-project-presentation-api.onrender.com';
         
         // Chart instances
         let classDistributionChart = null;
