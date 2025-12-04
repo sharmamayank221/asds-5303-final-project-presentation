@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Diabetes Prediction Analysis - Group 7</title>
+
+    <!-- 1. Import Reveal.js CSS (The Framework) -->
+    <link rel="stylesheet" href="https://unpkg.com/reveal.js@4.6.0/dist/reveal.css">
+    
+    <!-- 2. Import a Theme (We chose 'Simple' as a base for an Academic look) -->
+    <link rel="stylesheet" href="https://unpkg.com/reveal.js@4.6.0/dist/theme/simple.css">
+
+    <!-- 3. Import Fonts and Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- 4. Custom CSS to match your Group's Blue/Teal Branding -->
+    <style>
+        /* Viewport and Scroll Settings */
+        .reveal .slides section {
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px 60px;
+        }
+        
+        .reveal .slides {
+            text-align: left;
+        }
+        
+        /* Typography Overrides */
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: 'Merriweather', serif;
+            text-transform: none; /* Reveal defaults to uppercase, we turn that off */
+            color: #005088;
+        }
+
+        .reveal h1 { font-size: 1.8em; margin-bottom: 0.5em; }
+        .reveal h2 { font-size: 1.4em; border-bottom: 3px solid #11caa0; padding-bottom: 10px; margin-bottom: 0.8em; }
+        .reveal h3 { font-size: 1.2em; }
+        .reveal h4 { font-size: 1.1em; margin-bottom: 0.5em; }
+        
+        .reveal p, .reveal li {
+            font-family: 'DM Sans', sans-serif;
+            color: #334155;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin: 0.5em 0;
+        }
+        
+        .reveal ul, .reveal ol {
+            margin: 0.5em 0;
+        }
+        
+        .reveal li {
+            margin: 0.3em 0;
+        }
+
+        /* Helper Classes */
+        .text-accent { color: #11caa0 !important; font-weight: bold; }
+        .text-primary { color: #005088 !important; }
+        .bg-light { background-color: #f1f5f9; padding: 15px; border-radius: 10px; margin: 10px 0; }
+        
+        /* Layouts */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 1024px) {
+            .two-col {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .three-col {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        /* Card Style for Tiles */
+        .card {
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-top: 5px solid #005088;
+        }
+        
+        .card p {
+            font-size: 0.85em;
+        }
+        
+        .card h4 {
+            font-size: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        /* Table Styling */
+        .reveal table {
+            font-size: 0.75em;
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+        .reveal th { background-color: #005088; color: white; padding: 10px; font-size: 0.9em; }
+        .reveal td { padding: 10px; border-bottom: 1px solid #ddd; font-size: 0.9em; }
+        .reveal tr:nth-child(even) { background-color: #f8fafc; }
+
+        /* Title Slide Special Styling */
+        .title-slide {
+            background: linear-gradient(135deg, #005088 0%, #003055 100%);
+            color: white !important;
+            padding: 30px;
+            border-radius: 15px;
+        }
+        .title-slide h1 { font-size: 1.6em; }
+        .title-slide h1, .title-slide p { color: white !important; }
+        .title-slide .subtitle { color: #11caa0 !important; font-weight: bold; letter-spacing: 2px; font-size: 0.8em; }
+        .title-slide p { font-size: 0.75em; }
+
+        /* Image Styling */
+        .reveal img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .image-caption {
+            font-size: 0.65em;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Code styling */
+        .reveal code {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #005088;
+            font-size: 0.85em;
+        }
+        
+        /* Ensure slides fit viewport */
+        .reveal .slides section {
+            max-height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        /* Storytelling Enhancements */
+        .story-highlight {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #005088;
+            margin: 15px 0;
+        }
+        
+        .callout-box {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            margin: 20px 0;
+        }
+        
+        .callout-success {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left: 5px solid #22c55e;
+        }
+        
+        .callout-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .callout-danger {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-left: 5px solid #ef4444;
+        }
+        
+        /* Number emphasis */
+        .big-number {
+            font-size: 3em;
+            font-weight: bold;
+            line-height: 1;
+            display: block;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-height: 800px) {
+            .reveal h1 { font-size: 1.5em; }
+            .reveal h2 { font-size: 1.2em; }
+            .reveal p, .reveal li { font-size: 0.8em; }
+            .reveal .slides section { padding: 15px 40px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- SLIDE 1: TITLE -->
+            <section data-background-color="#f0f2f5">
+                <div class="title-slide">
+                    <h1>Comparative Analysis of Linear and Quadratic Discriminant Methods</h1>
+                    <p class="subtitle">EARLY DETECTION OF DIABETES | ASDS 5303</p>
+                    <hr style="border-color: #11caa0; opacity: 0.5;">
+                    <div style="margin-top: 40px; font-size: 0.8em;">
+                        <p><strong>Group 7</strong></p>
+                        <p>Bikesh Adhikari &bull; Mayanka Sharma</p>
+                        <p>Md Ahnaf Tajwar Kamal &bull; Saminas Betel Kebebe</p>
+                        <p style="margin-top: 20px; font-size: 0.8em; opacity: 0.8;">December 5, 2025</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: HOOK -->
+            <section data-background-color="#fef2f2">
+                <div style="text-align: center; padding: 40px;">
+                    <h1 style="font-size: 3em; color: #ef4444; margin-bottom: 30px;">537 Million</h1>
+                    <p style="font-size: 1.2em; color: #334155; margin-bottom: 10px;">People worldwide live with diabetes</p>
+                    <p style="font-size: 0.65em; color: #64748b; font-style: italic; margin-bottom: 40px;">Source: IDF Diabetes Atlas, 10th Edition (2021)</p>
+                    <div class="fragment">
+                        <p style="font-size: 1em; color: #005088;"><strong>But here's the problem:</strong></p>
+                        <p style="font-size: 0.9em; color: #64748b; margin-top: 20px;">Many cases go undetected until complications arise</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 2B: BACKGROUND -->
+            <section>
+                <h2>The Mission: Early Detection Saves Lives</h2>
+                <div class="two-col">
+                    <div style="text-align: left;">
+                        <div class="fragment">
+                            <h4 class="text-primary" style="font-size: 1.1em;"><i class="fa-solid fa-exclamation-triangle" style="color: #ef4444;"></i> The Challenge</h4>
+                            <p style="font-size: 0.85em; margin-top: 10px;">Diabetes is a <strong>silent killer</strong>. By the time symptoms appear, irreversible damage may have occurred. Early detection through predictive modeling can change lives.</p>
+                        </div>
+                        <div class="fragment" style="margin-top: 25px;">
+                            <h4 class="text-accent" style="font-size: 1.1em;"><i class="fa-solid fa-bullseye"></i> Our Quest</h4>
+                            <p style="font-size: 0.85em; margin-top: 10px;">Can we build a model that accurately identifies at-risk patients using <strong>simple, non-invasive measurements</strong>? We tested two powerful methods: <span class="text-accent">LDA</span> vs <span class="text-accent">QDA</span>.</p>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/diabetes_introduction.jpg" alt="Diabetes Introduction" style="max-height: 500px; width: auto; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: DATASET -->
+            <section>
+                <h2>Our Data: The Pima Indians Diabetes Study</h2>
+                <p style="font-size: 0.8em; color: #64748b; margin-bottom: 25px;">A real-world dataset with real-world challenges</p>
+                <div class="three-col" style="margin-top: 30px;">
+                    <div class="card fragment fade-up" style="border-top-color: #005088;">
+                        <i class="fa-solid fa-users text-primary" style="font-size: 45px; margin-bottom: 15px;"></i>
+                        <h4>768 Women</h4>
+                        <p style="font-size: 0.75em;">Pima Indian heritage, aged 21+</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 8px;">Real patients, real data</p>
+                    </div>
+                    <div class="card fragment fade-up" style="border-top-color: #11caa0;">
+                        <i class="fa-solid fa-file-medical text-accent" style="font-size: 45px; margin-bottom: 15px;"></i>
+                        <h4>8 Predictors</h4>
+                        <p style="font-size: 0.7em;">Glucose, BMI, Insulin, Age, Blood Pressure, Pregnancies, Skin Thickness, Pedigree</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 8px;">Simple, non-invasive measurements</p>
+                    </div>
+                    <div class="card fragment fade-up" style="border-top-color: #ef4444;">
+                        <i class="fa-solid fa-bullseye" style="font-size: 45px; margin-bottom: 15px; color: #ef4444;"></i>
+                        <h4>Binary Outcome</h4>
+                        <p style="font-size: 0.75em;"><b>0 = No Diabetes</b><br><b>1 = Diabetes</b></p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 8px;">Clear classification goal</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3B: CLASS DISTRIBUTION -->
+            <section>
+                <h2>First Red Flag: Class Imbalance</h2>
+                <p style="font-size: 0.75em; color: #64748b; margin-bottom: 20px;">Our first challenge revealed itself immediately</p>
+                <div class="two-col">
+                    <div class="image-container">
+                        <img src="images/01_outcome_distribution.png" alt="Distribution of Diabetes Outcome" style="max-height: 500px;">
+                        <p class="image-caption">Distribution of Diabetes Outcome</p>
+                    </div>
+                    <div style="text-align: left; padding: 15px;">
+                        <div class="bg-light fragment">
+                            <h4 class="text-primary"><i class="fa-solid fa-chart-bar"></i> The Numbers</h4>
+                            <ul style="font-size: 0.8em;">
+                                <li><strong>No Diabetes:</strong> ~500 cases (65%)</li>
+                                <li><strong>Diabetes:</strong> ~265 cases (35%)</li>
+                            </ul>
+                        </div>
+                        <div class="fragment" style="margin-top: 15px; padding: 15px; background-color: #fef2f2; border-left: 5px solid #ef4444; border-radius: 8px;">
+                            <p style="font-size: 0.75em; margin: 0; color: #92400e;"><strong>⚠️ Warning Sign:</strong> A 2:1 imbalance means our model might favor the majority class. This will become critical later in our story.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: METHODOLOGY -->
+            <section>
+                <h2>Preparing for Battle: Data Preprocessing</h2>
+                <p style="font-size: 0.75em; color: #64748b; margin-bottom: 20px;">Before we could build models, we had to clean our data</p>
+                <div style="text-align: left;">
+                    <div class="bg-light fragment" style="border-left: 5px solid #005088;">
+                        <h4><i class="fa-solid fa-broom"></i> Step 1: Data Cleaning</h4>
+                        <p style="font-size: 0.75em;">Replaced impossible zero values (e.g., 0 Glucose, 0 Blood Pressure) with <code>NA</code> and imputed using median values to preserve distribution characteristics.</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 5px;"><em>Quality data = reliable results</em></p>
+                    </div>
+                    <div class="bg-light fragment" style="margin-top: 10px; border-left: 5px solid #11caa0;">
+                        <h4><i class="fa-solid fa-scissors"></i> Step 2: Train-Test Split</h4>
+                        <p style="font-size: 0.75em;">70% Training / 30% Testing split, stratified to maintain the original class distribution in both sets.</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 5px;"><em>Fair evaluation requires fair splits</em></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4B: DATA VISUALIZATION -->
+            <section>
+                <h2>Data Visualization</h2>
+                <div class="image-container">
+                    <img src="images/04_scatter_plots.png" alt="Scatter Plots: Glucose vs BMI and Age vs Glucose" style="max-height: 550px;">
+                    <p class="image-caption">Scatter Plots: Glucose vs BMI and Age vs Glucose (Cleaned)</p>
+                </div>
+                <div style="margin-top: 15px; font-size: 0.7em; text-align: left; padding: 12px; background-color: #f8fafc; border-radius: 8px;">
+                    <p style="margin: 0.3em 0;"><strong>Key Insights:</strong></p>
+                    <ul style="margin: 0.3em 0;">
+                        <li style="margin: 0.2em 0;"><strong>Glucose</strong> appears to be the strongest distinguishing factor (diabetes cases cluster at Glucose > 120-130)</li>
+                        <li style="margin: 0.2em 0;">Higher BMI and Age show increased diabetes prevalence, but with significant overlap</li>
+                        <li style="margin: 0.2em 0;">No clear linear separation, suggesting non-linear boundaries may be needed</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: EXPLORATORY ANALYSIS -->
+            <section>
+                <h2>Correlation Analysis</h2>
+                <div class="image-container">
+                    <img src="images/03_correlation_matrix.png" alt="Correlation Matrix Heatmap" style="max-height: 550px;">
+                    <p class="image-caption">Pairwise Correlation Matrix of Predictors</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 5B: CORRELATION INSIGHTS -->
+            <section>
+                <h2>Key Correlations</h2>
+                <div class="two-col">
+                    <div style="text-align: left;">
+                        <h4 class="text-primary">Strong Correlations</h4>
+                        <ul style="font-size: 0.75em;">
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Age & Pregnancies (0.54):</strong> Strongest correlation; older women tend to have higher pregnancy counts.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>BMI & Skin Thickness (0.54):</strong> Expected physiological relationship - both measure body composition.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Glucose & Insulin (0.42):</strong> Moderate positive correlation - insulin response to glucose levels.</li>
+                        </ul>
+                        <h4 class="text-primary" style="margin-top: 20px;">Weak Correlations</h4>
+                        <ul style="font-size: 0.75em;">
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>BloodPressure & DiabetesPedigreeFunction (0.00):</strong> No linear relationship.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Pregnancies & BMI (0.02):</strong> Nearly independent.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-light" style="padding: 15px; margin-top: 15px;">
+                        <h4 class="text-accent">Implications</h4>
+                        <p style="font-size: 0.75em; margin-top: 10px;"><strong>No perfect multicollinearity:</strong> All correlations are moderate, suggesting each predictor contributes unique information. This supports the use of discriminant analysis methods.</p>
+                        <p style="font-size: 0.75em; margin-top: 10px;"><strong>No single dominant predictor:</strong> The outcome cannot be predicted by a single variable, necessitating multivariate approaches like LDA/QDA.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 6: PCA -->
+            <section>
+                <h2>Principal Component Analysis</h2>
+                <div class="two-col">
+                    <div class="image-container">
+                        <img src="images/06_pca_biplot.png" alt="PCA Scatter Plot" style="max-height: 450px;">
+                        <p class="image-caption" style="font-size: 0.6em; margin-top: 5px;">PCA: First Two Principal Components</p>
+                    </div>
+                    <div style="text-align: left; padding: 10px;">
+                        <div class="card" style="margin-bottom: 10px; padding: 12px;">
+                            <h4 style="font-size: 0.95em; margin-bottom: 0.3em;"><span class="text-accent">47.23%</span> Variance Explained</h4>
+                            <p style="font-size: 0.7em; margin: 0.2em 0;">First 2 components (PC1 + PC2) capture less than half of total variance.</p>
+                        </div>
+                        <div class="card" style="margin-bottom: 10px; padding: 12px;">
+                            <h4 style="font-size: 0.95em; margin-bottom: 0.3em;">5 Components Needed</h4>
+                            <p style="font-size: 0.7em; margin: 0.2em 0;">Required to capture >80% of the dataset's information.</p>
+                        </div>
+                        <div class="bg-light" style="padding: 12px;">
+                            <h4 style="font-size: 0.9em; margin-bottom: 0.3em;">Key Observation</h4>
+                            <p style="font-size: 0.65em; margin: 0.2em 0;"><strong>Heavy Overlap:</strong> The first two principal components show significant overlap between diabetes and no-diabetes groups, indicating that linear separation in reduced space is challenging. This supports the need for discriminant analysis methods.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: MODEL RESULTS -->
+            <section>
+                <h2>The Moment of Truth: Model Performance</h2>
+                <p style="font-size: 0.75em; margin-bottom: 15px; color: #64748b;">After rigorous testing, the results are in...</p>
+                <div class="two-col">
+                    <div>
+                        <table style="font-size: 0.75em;">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>LDA (Linear)</th>
+                                    <th>QDA (Quadratic)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Accuracy</strong></td>
+                                    <td class="text-accent"><strong>76.09%</strong></td>
+                                    <td>71.30%</td>
+                                </tr>
+                                <tr>
+                                    <td>Sensitivity (Healthy)</td>
+                                    <td class="text-accent">86.67%</td>
+                                    <td>82.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>Specificity (Diabetic)</td>
+                                    <td class="text-accent">56.25%</td>
+                                    <td>51.25%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>AUC (ROC)</strong></td>
+                                    <td class="text-accent"><strong>0.835</strong></td>
+                                    <td>0.806</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/12_roc_curves.png" alt="ROC Curves: LDA vs QDA" style="max-height: 450px;">
+                        <p class="image-caption">ROC Curves: LDA vs QDA</p>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background-color: #f8fafc; border-radius: 8px; font-size: 0.7em;">
+                    <p style="margin: 0.3em 0;"><strong>ROC Analysis:</strong> Both models perform significantly better than random (diagonal line). LDA curve is consistently above QDA, confirming superior performance across all thresholds.</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 7B: LDA vs QDA DETAILED RESULTS -->
+            <section>
+                <h2>LDA vs QDA: Detailed Results</h2>
+                <div class="two-col" style="gap: 30px; align-items: start;">
+                    <div class="card" style="border-top-color: #005088;">
+                        <h3 class="text-primary" style="text-align: center; margin-bottom: 15px;">LDA (Linear Discriminant Analysis)</h3>
+                        <div style="font-size: 0.8em;">
+                            <p style="margin: 8px 0;"><strong>Accuracy:</strong> <span class="text-accent">76.09%</span></p>
+                            <p style="margin: 8px 0;"><strong>Sensitivity:</strong> <span class="text-accent">86.67%</span></p>
+                            <p style="margin: 8px 0;"><strong>Specificity:</strong> <span class="text-accent">56.25%</span></p>
+                            <p style="margin: 8px 0;"><strong>AUC-ROC:</strong> <span class="text-accent">0.835</span></p>
+                            <p style="margin: 8px 0;"><strong>Precision:</strong> <span class="text-accent">0.71</span></p>
+                            <p style="margin: 8px 0;"><strong>F1-Score:</strong> <span class="text-accent">0.78</span></p>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background-color: #f0f9ff; border-radius: 5px;">
+                            <p style="font-size: 0.75em; margin: 0;"><strong>Key Strength:</strong> More robust to class imbalance, better generalization.</p>
+                        </div>
+                    </div>
+                    <div class="card" style="border-top-color: #11caa0;">
+                        <h3 class="text-accent" style="text-align: center; margin-bottom: 15px;">QDA (Quadratic Discriminant Analysis)</h3>
+                        <div style="font-size: 0.8em;">
+                            <p style="margin: 8px 0;"><strong>Accuracy:</strong> 71.30%</p>
+                            <p style="margin: 8px 0;"><strong>Sensitivity:</strong> 82.00%</p>
+                            <p style="margin: 8px 0;"><strong>Specificity:</strong> 51.25%</p>
+                            <p style="margin: 8px 0;"><strong>AUC-ROC:</strong> 0.806</p>
+                            <p style="margin: 8px 0;"><strong>Precision:</strong> 0.66</p>
+                            <p style="margin: 8px 0;"><strong>F1-Score:</strong> 0.73</p>
+                        </div>
+                        <div style="margin-top: 15px; padding: 10px; background-color: #f0fdf4; border-radius: 5px;">
+                            <p style="font-size: 0.75em; margin: 0;"><strong>Limitation:</strong> Overfits on smaller class, less stable with imbalanced data.</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 5px solid #f59e0b; border-radius: 8px;">
+                    <p style="font-size: 0.75em; margin: 0.3em 0; color: #92400e;"><strong>Winner: LDA</strong> - Despite theoretical preference for QDA (unequal covariance), LDA demonstrates superior performance with 4.79% higher accuracy and better stability on imbalanced data.</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: THE BLIND SPOT -->
+            <section data-background-color="#fef2f2">
+                <h2 style="color: #ef4444;">The Critical Blind Spot</h2>
+                <p style="font-size: 0.75em; color: #64748b; margin-bottom: 20px;">A sobering reality check</p>
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
+                    <div class="card" style="width: 280px; padding: 15px;">
+                        <h1 style="font-size: 2.5em; color: #ef4444; margin: 0.2em 0;">56%</h1>
+                        <p style="font-size: 0.85em; margin: 0.3em 0;">Specificity</p>
+                        <p style="font-size: 0.65em; margin-top: 8px;">Only 56% of diabetic cases correctly identified</p>
+                    </div>
+                    <div class="card" style="width: 280px; padding: 15px;">
+                        <h1 style="font-size: 2.5em; color: #ef4444; margin: 0.2em 0;">44%</h1>
+                        <p style="font-size: 0.85em; margin: 0.3em 0;">Missed Cases</p>
+                        <p style="font-size: 0.65em; margin-top: 8px;">44% of diabetic patients go undetected</p>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background-color: #fef2f2; border-left: 5px solid #ef4444; border-radius: 8px;">
+                    <p style="font-size: 0.7em; margin: 0.2em 0;"><strong>Critical Issue:</strong> The model is excellent at identifying healthy individuals (86.67% sensitivity), but struggles with positive cases due to <strong>class imbalance</strong> (65% No Diabetes vs 35% Diabetes). This is a significant limitation for clinical application where missing diabetic cases has serious consequences.</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 9: ASSUMPTIONS -->
+            <section>
+                <h2>The Plot Twist: Theory vs. Reality</h2>
+                <p style="font-size: 0.75em; color: #64748b; margin-bottom: 25px;">Sometimes the data tells a different story than the textbooks</p>
+                <div style="margin-bottom: 15px; padding: 12px; background-color: #f8fafc; border-radius: 8px; font-size: 0.7em;">
+                    <p style="margin: 0.2em 0;"><strong>📊 Box's M Test:</strong> A statistical test that checks whether covariance matrices are equal across groups. <strong>H₀:</strong> Equal covariance (LDA assumption). <strong>H₁:</strong> Unequal covariance (QDA assumption).</p>
+                </div>
+                <div class="two-col">
+                    <div class="card fragment" style="border-top-color: #ef4444;">
+                        <h4 style="color: #ef4444;"><i class="fa-solid fa-book"></i> What Theory Said</h4>
+                        <p style="font-size: 0.85em;"><strong>Box's M Test: p < 0.05</strong></p>
+                        <p style="font-size: 0.75em;">We <strong>rejected</strong> the null hypothesis of equal covariance. This means the covariance matrices differ significantly between diabetes and no-diabetes groups.</p>
+                        <p style="font-size: 0.8em; margin-top: 10px;">Statistical theory clearly suggests <strong>QDA</strong> should win (since it allows different covariances).</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 10px;"><em>The textbooks were confident...</em></p>
+                    </div>
+                    <div class="card fragment" style="border-top-color: #11caa0;">
+                        <h4 class="text-accent"><i class="fa-solid fa-flask"></i> What Data Revealed</h4>
+                        <p style="font-size: 0.85em;"><strong>LDA Won</strong> by 4.79%</p>
+                        <p style="font-size: 0.8em;">Despite the violation, LDA was more robust. QDA likely overfitted the noise in the smaller class.</p>
+                        <p style="font-size: 0.7em; color: #64748b; margin-top: 10px;"><em>...but reality had other plans</em></p>
+                    </div>
+                </div>
+                <div class="fragment" style="margin-top: 20px; padding: 15px; background-color: #f0f9ff; border-left: 5px solid #005088; border-radius: 8px;">
+                    <p style="font-size: 0.75em; margin: 0; color: #005088;"><strong>💡 Key Insight:</strong> In real-world scenarios with imbalanced data, simpler models often outperform complex ones. Robustness beats theoretical perfection.</p>
+                </div>
+            </section>
+
+            <!-- SLIDE 10: CONCLUSION -->
+            <section>
+                <h2>What We Learned: The Journey's End</h2>
+                <div class="two-col">
+                    <div style="text-align: left;">
+                        <h4 class="text-primary"><i class="fa-solid fa-trophy"></i> Key Takeaways</h4>
+                        <ul style="font-size: 0.75em;">
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>🏆 LDA Wins:</strong> Despite theory favoring QDA, LDA achieved 76.09% accuracy with superior robustness. Sometimes simpler is better.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>⚠️ Critical Gap:</strong> Missing 44% of diabetic cases is unacceptable. We must do better.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>🔍 Root Cause:</strong> Class imbalance (65% vs 35%) is the villain in our story. This must be addressed.</li>
+                        </ul>
+                        <div class="fragment" style="margin-top: 15px; padding: 12px; background-color: #f0f9ff; border-radius: 8px;">
+                            <p style="font-size: 0.7em; margin: 0; color: #005088;"><strong>The Bottom Line:</strong> We have a good start, but we're not ready for clinical deployment yet.</p>
+                        </div>
+                    </div>
+                    <div style="text-align: left;">
+                        <h4 class="text-accent"><i class="fa-solid fa-rocket"></i> The Path Forward</h4>
+                        <ul style="font-size: 0.75em;">
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>SMOTE:</strong> Balance the classes to give diabetes cases a fair chance.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Cost-Sensitive Learning:</strong> Prioritize catching diabetic cases—missing them costs more than false alarms.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Ensemble Methods:</strong> Combine LDA with Random Forest, SVM for a stronger team.</li>
+                            <li class="fragment" style="margin: 0.3em 0;"><strong>Feature Engineering:</strong> Uncover hidden patterns through interaction terms.</li>
+                        </ul>
+                        <div class="fragment" style="margin-top: 15px; padding: 12px; background-color: #f0fdf4; border-radius: 8px;">
+                            <p style="font-size: 0.7em; margin: 0; color: #166534;"><strong>Our Promise:</strong> We'll continue improving until we can confidently detect diabetes early.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 11: END -->
+            <section data-background-color="#005088">
+                <h1 style="color: white;">Questions?</h1>
+                <div style="color: white; margin-top: 30px; font-size: 0.65em; text-align: left; padding: 20px; background-color: rgba(255,255,255,0.1); border-radius: 8px; max-height: 70vh; overflow-y: auto;">
+                    <p style="color: white; font-weight: bold; margin-bottom: 12px; font-size: 0.95em;">References:</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">1. International Diabetes Federation. (2021). <em>IDF Diabetes Atlas, 10th Edition</em>. Brussels, Belgium: International Diabetes Federation.</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">2. National Institute of Diabetes and Digestive and Kidney Diseases. <em>Pima Indians Diabetes Database</em>. UCI Machine Learning Repository.</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">3. James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). <em>An Introduction to Statistical Learning: with Applications in R</em>. New York: Springer.</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">4. Venables, W. N., & Ripley, B. D. (2002). <em>Modern Applied Statistics with S</em> (4th ed.). New York: Springer.</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">5. American Diabetes Association. (2023). Standards of Care in Diabetes—2023. <em>Diabetes Care</em>, 46(Supplement 1), S1-S291.</p>
+                    <p style="color: rgba(255,255,255,0.95); margin: 6px 0; line-height: 1.4;">6. Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002). SMOTE: Synthetic Minority Over-sampling Technique. <em>Journal of Artificial Intelligence Research</em>, 16, 321-357.</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- 5. Import Reveal.js Scripts (Logic) -->
+    <script src="https://unpkg.com/reveal.js@4.6.0/dist/reveal.js"></script>
+    <script>
+        // Initialize the presentation
+        Reveal.initialize({
+            hash: true, // Adds slide number to URL
+            slideNumber: true, // Shows slide number
+            transition: 'slide', // none/fade/slide/convex/concave/zoom
+            width: 1200,
+            height: 700,
+            margin: 0.1,
+            minScale: 0.2,
+            maxScale: 1.5,
+            center: true,
+            touch: true,
+            keyboard: true,
+            overview: true,
+            fragments: true
+        });
+    </script>
+</body>
+</html>
+</html>
